@@ -79,13 +79,15 @@ function scanEmail(e) {
     
     // Auth Token
     const token = ScriptApp.getIdentityToken();
+    const apiKey = PropertiesService.getScriptProperties().getProperty('UPWIND_API_KEY');
     
     // Networking
     const options = {
       method: 'post',
       contentType: 'application/json',
       headers: {
-        'Authorization': 'Bearer ' + token
+        'Authorization': 'Bearer ' + token,
+        'x-api-key': apiKey || ''
       },
       payload: JSON.stringify(payload),
       muteHttpExceptions: true
