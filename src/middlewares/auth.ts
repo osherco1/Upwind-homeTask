@@ -1,20 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
 
 /**
- * Authentication middleware stub.
+ * Production-grade API Key Authentication Middleware.
  * 
- * TODO: In the future, this will verify Google Workspace ID Tokens (JWT)
- * using the `google-auth-library`.
- * 
- * For now, it just logs the Authorization header if present and proceeds
- * without blocking, allowing for local testing.
+ * Extracts the `x-api-key` header (or standard `Authorization` header)
+ * and compares it securely against `process.env.API_KEY`.
  */
 export function auth(req: Request, res: Response, next: NextFunction): void {
-  const authHeader = req.headers.authorization;
-  if (authHeader) {
-    console.log(`[auth] Authorization header present: ${authHeader.substring(0, 20)}...`);
-  } else {
-    console.log('[auth] No Authorization header present.');
+  const apiKey = req.headers['x-api-key'] || req.headers.authorization;
+  const expectedKey = process.env.API_KEY;
+
+  if (!apiKey) {
+    res.status(401).json({ error: "Missing API Key" });
+    return;
   }
+
+  if (apiKey !== expectedKey) {
+    res.status(401).json({ error: "Invalid API Key" });
+    return;
+  }
+
   next();
 }

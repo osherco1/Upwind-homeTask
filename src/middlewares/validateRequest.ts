@@ -1,13 +1,33 @@
 import { Request, Response, NextFunction } from 'express';
 
 /**
- * Placeholder validation middleware.
+ * Strict input validation middleware.
  *
- * In a future iteration this will enforce the exact JSON schema
- * defined in the Request Payload Contract (DESIGN.md §2).
- * For now it logs receipt and passes control to the next handler.
+ * Enforces the exact JSON schema defined in the Request Payload Contract (DESIGN.md §2).
  */
 export function validateRequest(req: Request, res: Response, next: NextFunction): void {
-  console.log(`[validateRequest] Received ${req.method} ${req.originalUrl} — payload size: ${JSON.stringify(req.body).length} bytes`);
+  const { body, headers, attachments } = req.body;
+
+  const errors: string[] = [];
+
+  if (typeof body !== 'string') {
+    errors.push("'body' must exist and be a string.");
+  }
+
+  if (!headers || typeof headers !== 'object' || Array.isArray(headers)) {
+    errors.push("'headers' must exist and be an object.");
+  } else if (typeof headers.from !== 'string') {
+    errors.push("'headers.from' must exist and be a string.");
+  }
+
+  if (attachments !== undefined && !Array.isArray(attachments)) {
+    errors.push("'attachments', if present, must be an array.");
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({ error: "Bad Request", details: errors });
+    return;
+  }
+
   next();
 }

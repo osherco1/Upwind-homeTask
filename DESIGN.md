@@ -47,6 +47,16 @@ The backend is a **Node.js/TypeScript HTTP service** responsible for:
 
 ---
 
+### Security Architecture & Trust Boundaries
+
+To enforce a "Zero Trust" approach, the backend implements strict security gates before any payload reaches the scoring engine:
+
+- **Static API Key Authentication:** The service is protected by API Key authentication (`x-api-key` or `Authorization` header). This serves as a lightweight, server-to-server security measure for the MVP.
+  - *Trade-offs:* While simple to implement and manage for a single-client MVP, static keys lack the granular scoping, automatic rotation, and identity attribution provided by dynamic secrets or IAM-based authentication (e.g., OAuth2/JWT).
+- **Strict Input Validation:** All incoming requests must pass through a strict schema-validation middleware. The payload (`req.body`) is parsed to ensure it adheres precisely to the core schema (e.g., `body` as a string, `headers` with a `from` field, optional `attachments` array). Any deviation results in an immediate `400 Bad Request`, preventing downstream crashes, injection attacks, or unexpected behavior in the scoring engine.
+
+---
+
 ## 2. Data Flow & Trigger
 
 ### Trigger Model
